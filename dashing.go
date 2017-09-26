@@ -77,6 +77,7 @@ type Transform struct {
 	Attribute   string         // Use the value of this attribute as basis
 	Regexp      *regexp.Regexp // Perform a replace operation on the text
 	Replacement string
+	Track       bool
 	RequireText *regexp.Regexp // Require text matches the given regexp
 	MatchPath   *regexp.Regexp // Skip files that don't match this path
 }
@@ -220,9 +221,14 @@ func decodeSingleTransform(val map[string]interface{}) (*Transform, error) {
 	var ttype, trep, attr string
 	var creg, cmatchpath, requireText *regexp.Regexp
 	var err error
+	var track = true
 
 	if r, ok := val["attr"]; ok {
 		attr = r.(string)
+	}
+
+	if r, ok := val["track"]; ok {
+		track = r.(bool)
 	}
 
 	if r, ok := val["type"]; ok {
@@ -252,6 +258,7 @@ func decodeSingleTransform(val map[string]interface{}) (*Transform, error) {
 	return &Transform{
 		Type:        ttype,
 		Attribute:   attr,
+		Track:       track,
 		Regexp:      creg,
 		Replacement: trep,
 		RequireText: requireText,
@@ -511,7 +518,11 @@ func parseHTML(path string, source_depth int, dest string, dashing Dashing) ([]*
 				}
 
 				// References we want to track.
-				refs = append(refs, &reference{name, sel.Type, path + "#" + anchor(n)})
+
+				if sel.Track == true {
+					refs = append(refs, &reference{name, sel.Type, path + "#" + anchor(n)})	
+				}
+
 				// We need to modify the DOM with a special link to support TOC.
 				n.Parent.InsertBefore(newA(name, sel.Type), n)
 			}
