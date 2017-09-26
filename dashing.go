@@ -275,6 +275,7 @@ func decodeSelectField(d *Dashing) error {
 		if rv.Kind() == reflect.String {
 			trans = &Transform{
 				Type: val.(string),
+				Track: true,
 			}
 			d.selectors[sel] = append(d.selectors[sel], trans)
 		} else if rv.Kind() == reflect.Map {
